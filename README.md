@@ -77,6 +77,21 @@ The production Docker image builds the React frontend and serves it from FastAPI
 
 The supplied Blueprint uses Render's free web service and free Postgres plan for evaluation. Free Postgres expires after 30 days and has no backups; Render currently provides a 14-day grace period to upgrade before deletion. For permanent use, change the database plan from `free` to `256mb` in `render.yaml` before deploying, or upgrade it before the trial database expires.
 
+### Vercel backend alternative
+
+If you deploy only the FastAPI backend to Vercel, set the Vercel project's **Root Directory** to `backend`. The included `index.py` is the serverless entrypoint and `.python-version` selects the supported Python 3.13 runtime. Add these project environment variables before deploying:
+
+- `DATABASE_URL`: the external/pooled PostgreSQL connection string supplied by your database provider. A local socket URL does not work on Vercel.
+- `GOOGLE_MAPS_API_KEY`
+- `ADMIN_USERNAME` (normally `admin`)
+- `ADMIN_PASSWORD_HASH`
+- `SESSION_SECRET` (at least 32 random characters)
+- `AUTH_COOKIE_SECURE=true`
+- `ENABLE_API_DOCS=false`
+- `CORS_ORIGINS`: the exact frontend URL, such as `https://your-frontend.vercel.app`
+
+Run `alembic upgrade head` against that `DATABASE_URL` once before using saved leads. If the React frontend is a separate Vercel project, set its `VITE_API_URL` to the backend project URL and redeploy the frontend.
+
 ## API
 
 | Method | Path | Purpose |
