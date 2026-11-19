@@ -90,7 +90,7 @@ If you deploy only the FastAPI backend to Vercel, set the Vercel project's **Roo
 - `ENABLE_API_DOCS=false`
 - `CORS_ORIGINS`: the exact frontend URL, such as `https://your-frontend.vercel.app`
 
-Run `alembic upgrade head` against that `DATABASE_URL` once before using saved leads. If the React frontend is a separate Vercel project, set its `VITE_API_URL` to the backend project URL and redeploy the frontend.
+Run `alembic upgrade head` against that `DATABASE_URL` once before using saved leads. For the supplied separate frontend project, `frontend/vercel.json` proxies `/api/*` to the production backend so authentication remains same-origin. Update that rewrite destination if the backend project domain changes.
 
 ## API
 
