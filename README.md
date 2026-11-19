@@ -65,7 +65,7 @@ The production Docker image builds the React frontend and serves it from FastAPI
    git add .
    git commit -m "Prepare private deployment"
    git branch -M main
-   git remote add origin https://github.com/YOUR-NAME/YOUR-PRIVATE-REPO.git
+   git remote add origin https://github.com/ManaazirRayyaan/RDS-leads-.git
    git push -u origin main
    ```
 3. In Render, choose **New → Blueprint**, connect the repository, and select its root `render.yaml`.
