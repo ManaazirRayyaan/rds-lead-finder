@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
@@ -28,6 +29,7 @@ from .places import PlacesClient, PlacesError
 from .schemas import BulkDelete, ExportRequest, LeadOut, LoginRequest, NotesUpdate, SaveRequest, SearchRequest
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -68,6 +70,15 @@ async def prevent_places_caching(request: Request, call_next):
 @app.exception_handler(PlacesError)
 async def places_error_handler(_: Request, exc: PlacesError):
     return JSONResponse(status_code=exc.status, content={"detail": exc.message})
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_error_handler(_: Request, exc: SQLAlchemyError):
+    logger.exception("Database request failed", exc_info=exc)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Database is unavailable. Check DATABASE_URL and run the database migrations."},
+    )
 
 
 def places(request: Request) -> PlacesClient:

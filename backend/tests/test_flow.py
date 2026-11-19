@@ -13,6 +13,7 @@ import pytest
 from openpyxl import load_workbook
 from pwdlib import PasswordHash
 from sqlalchemy import delete
+from sqlalchemy.exc import OperationalError
 
 tmp = tempfile.mkdtemp()
 TEST_PASSWORD = "Correct-Horse-Battery-Staple-42"
@@ -30,7 +31,7 @@ from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.export import rows, to_csv, to_xlsx  # noqa: E402
-from app.db import SessionLocal  # noqa: E402
+from app.db import SessionLocal, get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Lead  # noqa: E402
 from app.places import CENTER_MASK, SEARCH_MASK, PlacesClient, maps_link  # noqa: E402
@@ -135,6 +136,23 @@ def test_request_validation(logged_in):
     assert client.post("/api/search", json={"category": "  ", "location": "Bengaluru"}).status_code == 422
     assert client.get("/api/leads?offset=-1").status_code == 422
     assert client.post("/api/leads", json={"place_ids": [" "]}).status_code == 422
+
+
+def test_database_errors_are_reported_as_service_unavailable(logged_in):
+    def unavailable_db():
+        raise OperationalError("SELECT 1", {}, Exception("database offline"))
+        yield
+
+    app.dependency_overrides[get_db] = unavailable_db
+    try:
+        response = logged_in.post("/api/leads", json={"place_ids": ["A1"]})
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "Database is unavailable. Check DATABASE_URL and run the database migrations."
+    }
 
 
 def test_save_dedupe_notes_list_export_delete(logged_in):
