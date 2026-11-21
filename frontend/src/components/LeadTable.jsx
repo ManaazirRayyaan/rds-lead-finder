@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, ExternalLink, Search as SearchIcon, SearchX } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, ArrowUpDown, ExternalLink, Search as SearchIcon, SearchX, Star } from 'lucide-react';
 
 const FILTERS = [['all', 'All'], ['with', 'With website'], ['without', 'No website']];
 
-function Skeleton() {
+function Skeleton({ columns }) {
   return Array.from({ length: 6 }).map((_, i) => (
     <tr key={i} className="border-t border-line">
-      {Array.from({ length: 6 }).map((__, j) => (
+      {Array.from({ length: columns }).map((__, j) => (
         <td key={j} className="px-4 py-4"><div className="h-3.5 rounded bg-ink/10 motion-safe:animate-pulse" style={{ width: `${55 + ((i * 7 + j * 13) % 40)}%` }} /></td>
       ))}
     </tr>
@@ -112,7 +112,7 @@ export default function LeadTable({ rows, selected, setSelected, savedIds, loadi
 
       <div className="panel overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
             <thead>
               <tr className="text-xs text-muted">
                 <th className="w-12 px-4 py-3"><input ref={allRef} type="checkbox" className="h-4 w-4 accent-[rgb(var(--accent))]" aria-label="Select all visible"
@@ -120,13 +120,15 @@ export default function LeadTable({ rows, selected, setSelected, savedIds, loadi
                 <th className="px-4 py-3 font-medium" aria-sort={sort === 'asc' ? 'ascending' : sort === 'desc' ? 'descending' : 'none'}>Business name</th>
                 <th className="px-4 py-3 font-medium">Phone</th>
                 <th className="px-4 py-3 font-medium">Website</th>
+                <th className="px-4 py-3 font-medium">Rating</th>
+                <th className="px-4 py-3 font-medium">Reviews</th>
                 <th className="px-4 py-3 font-medium">Address</th>
                 <th className="px-4 py-3 font-medium">Google Maps</th>
                 {onNotes && <th className="px-4 py-3 font-medium">Notes</th>}
               </tr>
             </thead>
             <tbody>
-              {loading && !rows.length && <Skeleton />}
+              {loading && !rows.length && <Skeleton columns={onNotes ? 9 : 8} />}
               {visible.map((r) => (
                 <tr key={r.key} className={`border-t border-line transition-colors hover:bg-ink/[0.03] ${selected.has(r.key) ? 'bg-accent/[0.06]' : ''}`}>
                   <td className="px-4 py-3.5"><input type="checkbox" className="h-4 w-4 accent-[rgb(var(--accent))]" aria-label={`Select ${r.name || r.key}`} checked={selected.has(r.key)} onChange={() => toggle(r.key)} /></td>
@@ -143,6 +145,17 @@ export default function LeadTable({ rows, selected, setSelected, savedIds, loadi
                     {r.website ? <a className="block truncate text-accent hover:underline" href={r.website} target="_blank" rel="noopener noreferrer" title={r.website}>{host(r.website)}</a>
                       : r.stale || r.error ? <span className="text-muted">—</span>
                       : <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">No website</span>}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3.5">
+                    {typeof r.rating === 'number' ? (
+                      <span className="inline-flex items-center gap-1.5" aria-label={`Rated ${r.rating.toFixed(1)} out of 5`}>
+                        <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden="true" />
+                        {r.rating.toFixed(1)}
+                      </span>
+                    ) : <span className="text-muted">—</span>}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3.5">
+                    {typeof r.review_count === 'number' ? r.review_count.toLocaleString() : <span className="text-muted">—</span>}
                   </td>
                   <td className="max-w-[300px] px-4 py-3.5 text-muted"><span className="line-clamp-2" title={r.address}>{r.address || '—'}</span></td>
                   <td className="whitespace-nowrap px-4 py-3.5">

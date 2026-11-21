@@ -1,7 +1,7 @@
 """Thin client for Google Places API (New).
 
-Only the five lead fields are requested, so every call stays inside one field mask
-and we never pay for data we do not show.
+Only the fields shown in the lead table are requested. Phone, website, rating,
+and review count all use the Places Enterprise field tier.
 """
 from __future__ import annotations
 
@@ -24,6 +24,8 @@ SEARCH_MASK = ",".join(
         "places.nationalPhoneNumber",
         "places.internationalPhoneNumber",
         "places.websiteUri",
+        "places.rating",
+        "places.userRatingCount",
         "places.googleMapsUri",
         "nextPageToken",
     ]
@@ -36,6 +38,8 @@ DETAILS_MASK = ",".join(
         "nationalPhoneNumber",
         "internationalPhoneNumber",
         "websiteUri",
+        "rating",
+        "userRatingCount",
         "googleMapsUri",
     ]
 )
@@ -62,12 +66,16 @@ def normalize(place: dict[str, Any]) -> dict[str, Any]:
     display_name = place.get("displayName")
     if not isinstance(display_name, dict):
         display_name = {}
+    rating = place.get("rating")
+    review_count = place.get("userRatingCount")
     return {
         "place_id": pid,
         "name": display_name.get("text", ""),
         "phone": place.get("nationalPhoneNumber") or place.get("internationalPhoneNumber") or "",
         "phone_tel": intl,
         "website": place.get("websiteUri") or "",
+        "rating": rating if isinstance(rating, (int, float)) and not isinstance(rating, bool) else None,
+        "review_count": review_count if isinstance(review_count, int) and not isinstance(review_count, bool) else None,
         "address": place.get("formattedAddress") or "",
         "maps_url": place.get("googleMapsUri") or maps_link(pid),
     }

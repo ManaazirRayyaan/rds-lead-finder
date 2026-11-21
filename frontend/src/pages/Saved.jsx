@@ -31,7 +31,8 @@ export default function Saved({ notify, onChanged }) {
   const rows = useMemo(() => data.items.map((it) => ({
     key: it.place_id, id: it.id, notes: it.notes, stale: !!it.stale, error: it.error,
     place_id: it.place_id, name: it.place?.name || '', phone: it.place?.phone || '', phone_tel: it.place?.phone_tel || '',
-    website: it.place?.website || '', address: it.place?.address || '',
+    website: it.place?.website || '', rating: it.place?.rating ?? null, review_count: it.place?.review_count ?? null,
+    address: it.place?.address || '',
     maps_url: it.place?.maps_url || `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${encodeURIComponent(it.place_id)}`,
   })), [data]);
 

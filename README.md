@@ -1,6 +1,6 @@
 # RDS Lead Finder
 
-Internal lead discovery tool for Rayyaan Digital Studio. Search Google Maps by category and place, see name, phone, website, address and Maps link in one table, save the businesses worth contacting, and export them.
+Internal lead discovery tool for Rayyaan Digital Studio. Search Google Maps by category and place, see name, phone, website, rating, review count, address and Maps link in one table, save the businesses worth contacting, and export them.
 
 The deployed app is private: one administrator signs in with a username and password, and every data/API route requires a signed HTTP-only session cookie.
 
@@ -15,14 +15,14 @@ Google's Places policies let you store a **Place ID** indefinitely, but prohibit
 | What | Where it lives |
 |---|---|
 | Place ID, your notes, timestamps | PostgreSQL `leads` table (the only thing stored) |
-| Name, phone, website, address | Fetched live from Google when shown and not cached or written to the database |
+| Name, phone, website, rating, review count, address | Fetched live from Google when shown and not cached or written to the database |
 | Exports (CSV / Excel) | Place ID, Google Maps link, your notes |
 
 Results are shown with Google Maps attribution, and the app includes Terms and Privacy pages. Review those pages, add the deployment operator's contact details, and re-read the [Places API policies](https://developers.google.com/maps/documentation/places/web-service/policies) and [Maps Platform Terms of Service](https://cloud.google.com/maps-platform/terms) before public deployment or volume outreach.
 
 ## Cost notes
 
-- A search uses **Text Search (New)** with a field mask of only the five lead fields (plus the international phone number for the tap-to-call link). Phone and website are Enterprise-tier fields, so those searches bill at the Enterprise rate. Check current rates on Google's pricing page.
+- A search uses **Text Search (New)** with a field mask for the displayed lead fields. Phone, website, rating and review count are Enterprise-tier fields, so those searches bill at the Enterprise rate. Check current rates on Google's pricing page.
 - Each search fetches up to 3 pages of 20 results. Google caps a query at roughly 60 results, so split large cities by locality or category.
 - Opening or refreshing **Saved leads** makes one Place Details call per lead on the page (25 by default). Use the 25 per page default and set a budget alert in Google Cloud.
 

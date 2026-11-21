@@ -39,7 +39,8 @@ from app.places import CENTER_MASK, SEARCH_MASK, PlacesClient, maps_link  # noqa
 PLACES = {
     "A1": {"id": "A1", "displayName": {"text": "Smile Dental"}, "formattedAddress": "HSR Layout, Bengaluru",
            "nationalPhoneNumber": "080 1234 5678", "internationalPhoneNumber": "+91 80 1234 5678",
-           "websiteUri": "https://smile.example", "googleMapsUri": "https://maps.google.com/?cid=1"},
+           "websiteUri": "https://smile.example", "rating": 4.6, "userRatingCount": 1234,
+           "googleMapsUri": "https://maps.google.com/?cid=1"},
     "B2": {"id": "B2", "displayName": {"text": "Care Clinic"}, "formattedAddress": "Sector 2, Bengaluru"},
     "C3": {"id": "C3", "displayName": {"text": "Bright Teeth"}, "formattedAddress": "Sector 7, Bengaluru",
            "nationalPhoneNumber": "099 000 1111"},
@@ -120,6 +121,10 @@ def test_search_paginates_and_dedupes(logged_in):
     data = r.json()
     assert [p["place_id"] for p in data["results"]] == ["A1", "B2", "C3"]
     assert data["results"][0]["phone_tel"] == "+918012345678"
+    assert data["results"][0]["rating"] == 4.6
+    assert data["results"][0]["review_count"] == 1234
+    assert data["results"][1]["rating"] is None
+    assert data["results"][1]["review_count"] is None
     assert data["results"][1]["website"] == ""
     assert data["results"][1]["maps_url"].endswith("query_place_id=B2")
     assert calls[-2]["textQuery"] == "Dental clinics in HSR Layout, Bengaluru"
@@ -163,6 +168,8 @@ def test_save_dedupe_notes_list_export_delete(logged_in):
     assert listing["total"] == 3
     first = listing["items"][0]
     assert first["place"]["name"] == "Bright Teeth"
+    assert listing["items"][2]["place"]["rating"] == 4.6
+    assert listing["items"][2]["place"]["review_count"] == 1234
     client.patch(f"/api/leads/{first['id']}", json={"notes": "call Monday"})
     assert client.get("/api/leads?q=monday").json()["total"] == 1
 
