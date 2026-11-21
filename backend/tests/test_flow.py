@@ -34,7 +34,7 @@ from app.export import rows, to_csv, to_xlsx  # noqa: E402
 from app.db import SessionLocal, get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Lead  # noqa: E402
-from app.places import CENTER_MASK, SEARCH_MASK, PlacesClient, maps_link  # noqa: E402
+from app.places import CENTER_MASK, DETAILS_MASK, SEARCH_MASK, PlacesClient, maps_link  # noqa: E402
 
 PLACES = {
     "A1": {"id": "A1", "displayName": {"text": "Smile Dental"}, "formattedAddress": "HSR Layout, Bengaluru",
@@ -58,10 +58,13 @@ def google(request: httpx.Request) -> httpx.Response:
         if mask == CENTER_MASK:
             return httpx.Response(200, json={"places": [{"location": {"latitude": 12.9, "longitude": 77.6}}]})
         assert mask == SEARCH_MASK
+        assert "places.rating" in mask and "places.userRatingCount" in mask
         if body.get("pageToken") == "T2":
             return httpx.Response(200, json={"places": [PLACES["A1"], PLACES["C3"]]})
         return httpx.Response(200, json={"places": [PLACES["A1"], PLACES["B2"]], "nextPageToken": "T2"})
     pid = request.url.path.rsplit("/", 1)[-1]
+    assert mask == DETAILS_MASK
+    assert "rating" in mask and "userRatingCount" in mask
     urls.append(str(request.url))
     if pid == "ERR":
         return httpx.Response(500, json={"error": {"message": "temporary failure"}})
